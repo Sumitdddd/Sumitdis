@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dictionary App with Listen & Theme Options</title>
+  <style>
+    :root {
+      --primary-color: #74ebd5;
+    }
+    /* Global Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, var(--primary-color), #acb6e5);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      transition: background 0.5s;
+    }
+    .container {
+      background: rgba(255,255,255,0.95);
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: border 0.5s;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    /* Search Box */
+    .search-box {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .search-box input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .search-box input[type="text"]:focus {
+      border-color: var(--primary-color);
+    }
+    /* 3D Button Styles */
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px 0 5px;
+      border: 2px solid var(--primary-color);
+      background: linear-gradient(145deg, #ffffff, #e6e6e6);
+      color: var(--primary-color);
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      outline: none;
+      box-shadow: 5px 5px 10px rgba(0,0,0,0.2), -5px -5px 10px #ffffff;
+      transition: transform 0.2s, background 0.3s, color 0.3s, box-shadow 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(145deg, #e6e6e6, #ffffff);
+      transform: translateY(-2px);
+      box-shadow: 5px 5px 15px rgba(0,0,0,0.2), -5px -5px 15px #ffffff;
+    }
+    button:active {
+      transform: translateY(0);
+      box-shadow: inset 5px 5px 10px rgba(0,0,0,0.2), inset -5px -5px 10px #ffffff;
+    }
+    /* Dictionary Result Styles */
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+    }
+    .word {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    .phonetics {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .definition {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #f9f9f9;
+      border-left: 4px solid var(--primary-color);
+      border-radius: 5px;
+    }
+    .error {
+      color: red;
+      text-align: center;
+    }
+    /* Translation Options Styles */
+    .translate-options {
+      margin-top: 30px;
+      text-align: center;
+    }
+    .translate-options p {
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: #333;
+    }
+    .lang-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    /* Listen Options Styles */
+    .listen-options {
+      margin-top: 30px;
+      text-align: center;
+    }
+    .listen-options p {
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: #333;
+    }
+    .listen-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    /* Theme Control Styles */
+    #themeControl {
+      margin-top: 30px;
+      text-align: center;
+    }
+    /* Theme Picker Panel */
+    #themePicker {
+      display: none;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .theme-swatch {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 14px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .theme-swatch:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dictionary App</h1>
+    <div class="search-box">
+      <input type="text" id="wordInput" placeholder="Type a word..." />
+      <button id="searchBtn">Search</button>
+    </div>
+    <!-- Dictionary result display -->
+    <div id="result"></div>
+    <!-- Translation options (shown only after result appears) -->
+    <div id="translateSection" class="translate-options" style="display: none;">
+      <p>Translate entire result to:</p>
+      <div class="lang-buttons">
+        <button onclick="translateResult('hi')">Hindi</button>
+        <button onclick="translateResult('es')">Spanish</button>
+        <button onclick="translateResult('fr')">French</button>
+        <button onclick="translateResult('de')">German</button>
+        <button onclick="translateResult('ja')">Japanese</button>
+        <button onclick="translateResult('ko')">Korean</button>
+        <button onclick="translateResult('zh')">Chinese</button>
+        <button onclick="translateResult('ar')">Arabic</button>
+        <button onclick="translateResult('ru')">Russian</button>
+      </div>
+    </div>
+    <!-- Listen Options Section -->
+    <div id="listenSection" class="listen-options" style="display: none;">
+      <p>Listen to result using:</p>
+      <div class="listen-buttons">
+        <button onclick="speakResult('male')">Listen (Male)</button>
+        <button onclick="speakResult('female')">Listen (Female)</button>
+      </div>
+    </div>
+    <!-- Theme Control Section -->
+    <div id="themeControl">
+      <button id="themeToggleBtn">Change Theme</button>
+    </div>
+    <!-- Theme Picker Panel (hidden by default) -->
+    <div id="themePicker"></div>
+  </div>
+
+  <script>
+    let originalResultHTML = ""; // Store original dictionary result
+
+    // Search functionality
+    document.getElementById('searchBtn').addEventListener('click', function() {
+      const word = document.getElementById('wordInput').value.trim();
+      if (!word) {
+        alert('Please enter a word.');
+        return;
+      }
+      fetchWord(word);
+    });
+
+    // Trigger search on Enter key press
+    document.getElementById('wordInput').addEventListener('keyup', function(event) {
+      if (event.key === 'Enter') {
+        document.getElementById('searchBtn').click();
+      }
+    });
+
+    function fetchWord(word) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<p>Loading...</p>';
+      // Hide translation and listen options until new result is fetched
+      document.getElementById('translateSection').style.display = 'none';
+      document.getElementById('listenSection').style.display = 'none';
+      fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Word not found');
+          }
+          return response.json();
+        })
+        .then(data => {
+          displayResult(data);
+          // Show translation and listen options after dictionary result is displayed
+          document.getElementById('translateSection').style.display = 'block';
+          document.getElementById('listenSection').style.display = 'block';
+        })
+        .catch(error => {
+          resultDiv.innerHTML = '<p class="error">Error: ' + error.message + '</p>';
+        });
+    }
+
+    function displayResult(data) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = "";
+      const entry = data[0];
+
+      // Display word
+      const wordEl = document.createElement('div');
+      wordEl.className = 'word';
+      wordEl.textContent = entry.word;
+      resultDiv.appendChild(wordEl);
+
+      // Display phonetics if available
+      if (entry.phonetics && entry.phonetics.length > 0 && entry.phonetics[0].text) {
+        const phoneticsEl = document.createElement('div');
+        phoneticsEl.className = 'phonetics';
+        phoneticsEl.textContent = entry.phonetics[0].text;
+        resultDiv.appendChild(phoneticsEl);
+      }
+
+      // Display meanings and definitions
+      entry.meanings.forEach(meaning => {
+        const posEl = document.createElement('h3');
+        posEl.textContent = meaning.partOfSpeech;
+        posEl.style.color = '#555';
+        resultDiv.appendChild(posEl);
+        meaning.definitions.forEach(def => {
+          const defEl = document.createElement('div');
+          defEl.className = 'definition';
+          defEl.textContent = def.definition;
+          resultDiv.appendChild(defEl);
+        });
+      });
+      // Save original result HTML for restoration after translation
+      originalResultHTML = resultDiv.innerHTML;
+    }
+
+    // Translation functionality using Google Translate's unofficial endpoint
+    function translateResult(targetLang) {
+      const resultDiv = document.getElementById('result');
+      const textToTranslate = resultDiv.innerText;
+      if (!textToTranslate) {
+        alert('No text available to translate.');
+        return;
+      }
+      resultDiv.innerHTML = '<p>Translating...</p>';
+      const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' 
+                  + targetLang + '&dt=t&q=' + encodeURIComponent(textToTranslate);
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          // Join all translation segments to form the complete translated text
+          let translatedText = data[0].map(segment => segment[0]).join('');
+          resultDiv.innerHTML = '<div>' + translatedText + '</div>';
+          // "Show Original" button to restore original dictionary result
+          const showOriginalBtn = document.createElement('button');
+          showOriginalBtn.textContent = 'Show Original';
+          showOriginalBtn.style.marginTop = '10px';
+          showOriginalBtn.onclick = function() {
+            resultDiv.innerHTML = originalResultHTML;
+          };
+          resultDiv.appendChild(showOriginalBtn);
+        })
+        .catch(error => {
+          resultDiv.innerHTML = '<p class="error">Error: ' + error.message + '</p>';
+        });
+    }
+
+    // Listen functionality using Web Speech API
+    function speakResult(voiceType) {
+      const resultText = document.getElementById('result').innerText;
+      if (!resultText) {
+        alert('No text available to speak.');
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(resultText);
+      let voices = window.speechSynthesis.getVoices();
+      // Some browsers load voices asynchronously
+      if (!voices.length) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          voices = window.speechSynthesis.getVoices();
+          setVoice();
+        };
+      } else {
+        setVoice();
+      }
+      function setVoice() {
+        let selectedVoice = null;
+        if (voiceType === 'male') {
+          // Heuristically choose a male voice (names like "David", "Mark", etc.)
+          for (let v of voices) {
+            if (v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("alex")) {
+              selectedVoice = v;
+              break;
+            }
+          }
+          if (!selectedVoice) {
+            selectedVoice = voices.find(v => !v.name.toLowerCase().includes("zira"));
+          }
+        } else if (voiceType === 'female') {
+          // Heuristically choose a female voice (names like "Zira" or containing "female")
+          for (let v of voices) {
+            if (v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("female")) {
+              selectedVoice = v;
+              break;
+            }
+          }
+          if (!selectedVoice) {
+            selectedVoice = voices[0];
+          }
+        }
+        if (!selectedVoice) {
+          selectedVoice = voices[0];
+        }
+        utterance.voice = selectedVoice;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    // Listen Options: Trigger speakResult with chosen voice type
+    function speakMale() {
+      speakResult('male');
+    }
+    function speakFemale() {
+      speakResult('female');
+    }
+
+    // Add event listeners for Listen buttons
+    // (Buttons in the HTML call speakResult('male') and speakResult('female') directly)
+
+    // ---------- Theme Change Functionality ----------
+    // Darken a hex color by a percentage (returns hex string)
+    function darkenColor(hex, percent) {
+      hex = hex.replace(/^#/, "");
+      if (hex.length === 3) {
+        hex = hex.split("").map(c => c + c).join("");
+      }
+      let num = parseInt(hex, 16);
+      let r = (num >> 16) & 0xFF;
+      let g = (num >> 8) & 0xFF;
+      let b = num & 0xFF;
+      r = Math.floor(r * (100 - percent) / 100);
+      g = Math.floor(g * (100 - percent) / 100);
+      b = Math.floor(b * (100 - percent) / 100);
+      return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join("");
+    }
+
+    // Change theme: update CSS variable and background gradient
+    function changeTheme(newColor) {
+      document.documentElement.style.setProperty('--primary-color', newColor);
+      document.body.style.background = `linear-gradient(135deg, ${newColor}, ${darkenColor(newColor, 20)})`;
+      document.getElementById('themePicker').style.display = 'none';
+    }
+
+    // Populate theme picker panel with available themes
+    const themes = [
+      {name: "Teal", color: "#74ebd5"},
+      {name: "Red", color: "#ff6b6b"},
+      {name: "Sky Blue", color: "#6bc1ff"},
+      {name: "Yellow", color: "#ffd93d"},
+      {name: "Orange", color: "#ff9a76"},
+      {name: "Purple", color: "#a29bfe"},
+      {name: "Green", color: "#00b894"},
+      {name: "Blue", color: "#0984e3"},
+      {name: "Pink", color: "#fd79a8"},
+      {name: "Burnt Orange", color: "#e17055"},
+      {name: "Cyan", color: "#00cec9"},
+      {name: "Light Yellow", color: "#ffeaa7"},
+      {name: "Gold", color: "#fdcb6e"},
+      {name: "Peach", color: "#fab1a0"},
+      {name: "Mint", color: "#55efc4"},
+      {name: "Light Blue", color: "#74b9ff"},
+      {name: "Indigo", color: "#6c5ce7"},
+      {name: "Crimson", color: "#d63031"},
+      {name: "Magenta", color: "#e84393"},
+      {name: "Dark", color: "#2d3436"}
+    ];
+
+    function populateThemePicker() {
+      const picker = document.getElementById('themePicker');
+      picker.innerHTML = "";
+      themes.forEach(theme => {
+        const btn = document.createElement('button');
+        btn.className = 'theme-swatch';
+        btn.style.background = theme.color;
+        btn.textContent = theme.name;
+        btn.onclick = function() {
+          changeTheme(theme.color);
+        };
+        picker.appendChild(btn);
+      });
+    }
+
+    document.getElementById('themeToggleBtn').addEventListener('click', function() {
+      const picker = document.getElementById('themePicker');
+      if (picker.style.display === "none" || picker.style.display === "") {
+        populateThemePicker();
+        picker.style.display = "block";
+      } else {
+        picker.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
